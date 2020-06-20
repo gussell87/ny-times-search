@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NY Times Search</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="jumbotron">
+                <h1 class="text-center">
+                    <strong>
+                        <i class="fa fa-newspaper-o"></i>
+                        New York Times Search
+                    </strong>
+                </h1>
+            </div>
+    </div>
+    </header>
+    <div class="container">
+        <form>
+            <div class=panel-heading>
+                <strong>
+                    <h3 class="panel-title">
+                        Search Parameters
+                </strong>
+                </h3>
+            </div>
+            <div class="form-group">
+                <label for="search-term">Search Term</label>
+                <input type="text" class="form-control" id="searchTerm">
+            </div>
+            <div class="form-group">
+                <label for="number-records">Number of Records to Retrieve</label>
+                <select class="form-control" id="numberRecords">
+                    <option>1</option>
+                    <option>5</option>
+                    <option>10</option>
+                </select>
+                <br>
+                <div class="form-group">
+                    <label for="start-year">Start Year (Optional)</label>
+                    <input type="number" class="form-control" id="startYear">
+                </div>
+                <div class="form-group">
+                    <label for="end-year">End Year (Optional)</label>
+                    <input type="number" class="form-control" id="endYear">
+                </div>
+                <button type="button" class="btn btn-secondary" id="searchBtn">Search <i
+                        class="fa fa-search"></i></button>
+                <button type="button" class="btn btn-secondary" id="clearBtn">Clear Results <i
+                        class="fa fa-trash"></i></button>
+        </form>
+        <br> <br>
+        <div class="result">
+            <div class="title">
+                <h4><strong>
+                        <i class="fa fa-table"></i>
+                        Results
+                    </strong>
+                </h4>
+            </div>
+            <hr class="style-one">
+            <div class="article-list" id="data-selection">
+            </div>
+            </hr>
+        </div>
+        <script type="text/javascript">
+            $("#searchBtn").on("click", function () {
+                clearResults();
+                //api key
+                var key = "PmmaCGTgUJr7P1sH3E8Jw0ls5JKpn7WM";
+                //user input query added to var
+                var search = $("#searchTerm").val().trim();
+                // user input date begin added to var
+                var dateBegin = $("#startYear").val();
+                var beginDate = ("&begin_date=" + dateBegin + "0101");
+                // user input date begin added to var
+                var dateEnd = $("#endYear").val();
+                var endDate = ("&end_date=" + dateEnd + "1231");
+                //user input number of returned entries
+                var articlesReturned = $("#numberRecords").val();
+                //forming url depending on input
+                if ((dateBegin === undefined) && (dateEnd === undefined)) {
+                    var queryURL = ("https://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + search + "&facet_fields=source&facet=true" + "&api-key=" + key);
+                }
+                else if ((dateBegin !== undefined) && (dateEnd !== undefined)) {
+                    var queryURL = ("https://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + search + "&facet_fields=source&facet=true" + beginDate + endDate + "&api-key=" + key);
+                }
+                else if (dateBegin !== undefined) {
+                    var queryURL = ("https://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + search + "&facet_fields=source&facet=true" + beginDate + "&api-key=" + key);
+                }
+                else {
+                    var queryURL = ("https://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + search + "&facet_fields=source&facet=true" + endDate + "&api-key=" + key);
+                }
+                //check if url working
+                console.log(queryURL);
+                //retreive data
+                $.ajax({
+                    url: queryURL,
+                    method: "GET"
+                }).then(function (response) {
+                    console.log(response);
+                    var results = response.response.docs;
+                    for (var i = 0; i < articlesReturned; i++) {
+                        var articleDiv = $("<div>");
+                        var heading = $("<h3>");
+                        var author = $("<h5>");
+                        var preview = $("<p>");
+                        heading.text(results[i].headline.main);
+                        author.text(results[i].byline.original);
+                        preview.text(results[i].abstract);
+                        $(articleDiv).append(heading, author);
+                        $(articleDiv).append(preview);
+                        $(".article-list").append(articleDiv);
+                    }
+                });
+            });
+            $("#clearBtn").on("click", clearResults);
+            function clearFields() {
+                $(this).closest('form').find("input[type=text], textarea").val("");
+                $("#startYear").closest('form').find("input[type=number], numberarea").val("");
+                $("#endYear").closest('form').find("input[type=number], textarea").val("");
+            }
+            function clearResults() {
+                $(".article-list").empty();
+            }
+        </script>
+</body>
+
+</html>
